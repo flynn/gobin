@@ -90,6 +90,8 @@ Cache directories
 gobin maintains a cache of executables, separate from any executables that may
 be installed to $GOBIN.
 
+If $GOBIN_CACHE is set, it is always used as the cache directory.
+
 By default, gobin uses the directories gobin/$module@$version/$main_pkg under
 your user cache directory. See the documentation for os.UserCacheDir for
 OS-specific details on how to configure its location.

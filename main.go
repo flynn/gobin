@@ -129,8 +129,9 @@ func mainerr() error {
 	}
 
 	var gopath string          // effective GOPATH
-	var gobinCache string      // does what it says on the tin
 	var localCacheProxy string // local filesystem-based module download cache
+
+	gobinCache := os.Getenv("GOBIN_CACHE")
 
 	cwd, err := os.Getwd()
 	if err != nil {
@@ -159,28 +160,30 @@ func mainerr() error {
 
 		localCacheProxy = "GOPROXY=file://" + cachePath
 
-		if *fMainMod {
-			md := cwd
-			for {
-				if _, err := os.Stat(filepath.Join(md, "go.mod")); err == nil {
-					break
+		if gobinCache == "" {
+			if *fMainMod {
+				md := cwd
+				for {
+					if _, err := os.Stat(filepath.Join(md, "go.mod")); err == nil {
+						break
+					}
+					if d := filepath.Dir(md); d != md {
+						md = d
+					} else {
+						return fmt.Errorf("could not find main module")
+					}
 				}
-				if d := filepath.Dir(md); d != md {
-					md = d
-				} else {
-					return fmt.Errorf("could not find main module")
+
+				gobinCache = filepath.Join(md, ".gobincache")
+
+			} else {
+				ucd, err := os.UserCacheDir()
+				if err != nil {
+					return fmt.Errorf("failed to determine user cache dir: %v", err)
 				}
+
+				gobinCache = filepath.Join(ucd, "gobin")
 			}
-
-			gobinCache = filepath.Join(md, ".gobincache")
-
-		} else {
-			ucd, err := os.UserCacheDir()
-			if err != nil {
-				return fmt.Errorf("failed to determine user cache dir: %v", err)
-			}
-
-			gobinCache = filepath.Join(ucd, "gobin")
 		}
 	}
 
